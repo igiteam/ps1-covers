@@ -1,0 +1,1556 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>MacOS_X_ PS1 Cover Grid</title>
+
+    <meta name="description" content="Port PS1 games to MacOSX with AppGenesys">
+    <meta name="keywords"
+        content="appgenesys, macosx, port, video games, ps1, playstation, sony, emulator, mac apps, playstation 1, big sur">
+    <link rel="icon" href="https://cdn.sdappnet.cloud/rtx/images/Playstation-Logo.png" type="image/png">
+    <link rel="apple-touch-icon" href="https://cdn.sdappnet.cloud/rtx/images/Playstation-Logo.png" sizes="180x180">
+    <link rel="icon" type="image/png" href="https://cdn.sdappnet.cloud/rtx/images/Playstation-Logo.png" sizes="192x192">
+    <link rel="icon" type="image/png" href="https://cdn.sdappnet.cloud/rtx/images/Playstation-Logo.png" sizes="512x512">
+    <meta itemprop="name" content="MacOS_X_ PS1 Cover Grid">
+    <meta itemprop="description" content="Port PS1 games to MacOSX with AppGenesys">
+    <meta itemprop="image" content="https://cdn.sdappnet.cloud/rtx/images/ps1.png">
+    <meta property="og:title" content="MacOS_X_ PS1 Cover Grid">
+    <meta property="og:description" content="Port PS1 games to MacOSX with AppGenesys">
+    <meta property="og:image" content="https://cdn.sdappnet.cloud/rtx/images/ps1.png">
+    <meta property="og:url" content="">
+    <meta property="og:type" content="website">
+    <meta name="twitter:title" content="MacOS_X_ PS1 Cover Grid">
+    <meta name="twitter:description" content="Port PS1 games to MacOSX with AppGenesys">
+    <meta name="twitter:image" content="https://cdn.sdappnet.cloud/rtx/images/ps1.png">
+    <meta name="twitter:card" content="summary_large_image"><!-- Meta tags remain the same -->
+
+    <meta name="keywords"
+        content="appgenesys, macosx, port, video games, ps1, playstation, sony, emulator, mac apps, playstation 1, big sur">
+
+    <!-- Load PlayStation_macosx.js FIRST -->
+    <script src="https://cdn.sdappnet.cloud/rtx/Playstation_macosx.js"></script>
+    <style>
+        :root {
+            --gap: 10px;
+            --bg: black;
+            --fg: #eee;
+            --card: #1b1b1b;
+            --window-bg: #f0f0f0;
+            --window-header: linear-gradient(to bottom, #ededed, #d9d9d9);
+            --window-border: #c0c0c0;
+            --window-text: #000;
+            --button-bg: linear-gradient(to bottom, #4c98fe, #2b7df8);
+            --button-hover: linear-gradient(to bottom, #5ba3ff, #3a88ff);
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--fg);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            position: relative;
+        }
+
+        header {
+            padding: 12px;
+            position: sticky;
+            top: 0;
+            background: #000;
+            z-index: 10;
+        }
+
+        input[type="search"] {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 6px;
+            border: none;
+            outline: none;
+            background: #222;
+            color: white;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: var(--gap);
+            padding: var(--gap);
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            transform: scale(1.03);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .cover {
+            aspect-ratio: 1 / 1;
+            background: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: opacity 0.3s ease;
+        }
+
+        .cover.loading img {
+            opacity: 0;
+        }
+
+        .title {
+            padding: 8px;
+            font-size: 13px;
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        /* macOS Window Overlay */
+        .mac-window-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .mac-window {
+            width: 90%;
+            max-width: 800px;
+            height: 80vh;
+            background: var(--window-bg);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--window-border);
+        }
+
+        .window-header {
+            background: var(--window-header);
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--window-border);
+            user-select: none;
+        }
+
+        .window-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .window-control {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .window-control.close {
+            background: #ff5f57;
+        }
+
+        .window-control.minimize {
+            background: #ffbd2e;
+        }
+
+        .window-control.maximize {
+            background: #28ca42;
+        }
+
+        .window-title {
+            color: var(--window-text);
+            font-weight: 500;
+            font-size: 13px;
+        }
+
+        .window-content {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            background: white;
+        }
+
+        .window-left {
+            width: 40%;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            background: #f8f8f8;
+            border-right: 1px solid #e0e0e0;
+        }
+
+        .window-right {
+            width: 60%;
+            padding: 20px;
+            overflow-y: auto;
+            background: white;
+        }
+
+        .cover-large {
+            width: 250px;
+            height: 250px;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            background: transparent;
+        }
+
+        .cover-large img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .game-info {
+            text-align: center;
+            color: var(--window-text);
+            width: 100%;
+        }
+
+        .game-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #000;
+            word-break: break-word;
+        }
+
+        .game-details {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        /* Game Links CSS */
+        .game-links {
+            display: flex;
+            gap: 15px;
+            width: 100%;
+            justify-content: center;
+            align-items: center;
+            margin-top: 15px;
+        }
+
+        .game-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: white;
+            border: 1px solid lightgray;
+            border-radius: 8px;
+            padding: 8px 12px;
+            text-decoration: none;
+            color: #333;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            height: 40px;
+        }
+
+        .game-link:hover {
+            background-color: white;
+            border-color: #999;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .game-link img {
+            vertical-align: middle;
+            object-fit: contain;
+        }
+
+        .game-link.youtube img {
+            width: 80px !important;
+            height: auto;
+        }
+
+        .game-link.mobygames img {
+            width: 60px !important;
+            height: auto;
+        }
+
+        .script-container {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .script-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .script-title {
+            color: var(--window-text);
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .copy-button {
+            background: var(--button-bg);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .copy-button:hover {
+            background: var(--button-hover);
+        }
+
+        .copy-button.copied {
+            background: #28ca42;
+        }
+
+
+
+        .script-text {
+            flex: 1;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+            user-select: text;
+            cursor: text;
+        }
+
+        /* ASCII Art Container */
+        .ascii-art {
+            background: #000;
+            color: #0f0;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 11px;
+            line-height: 1.2;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            white-space: pre;
+            margin-bottom: 15px;
+            border: 1px solid #333;
+        }
+
+        /* Control Buttons */
+        .control-buttons {
+            position: fixed;
+            bottom: 16px;
+            left: 16px;
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .control-button {
+            width: 48px;
+            height: 48px;
+            cursor: pointer;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .control-button:hover {
+            transform: scale(1.1);
+            border-color: rgb(13, 122, 255);
+            background: rgba(0, 0, 0, 0.9);
+        }
+
+        .control-button.active {
+            border-color: #ff5f57;
+            background: rgba(0, 0, 0, 0.9);
+        }
+
+        .control-button img {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            grid-column: 1 / -1;
+        }
+
+        /* Alphabet right navbar */
+        #alphabet-nav {
+            position: fixed;
+            right: 10px;
+            top: 10%;
+            height: 80%;
+            display: flex;
+            flex-direction: column;
+            /* background-color: red; */
+            gap: 6px;
+            z-index: 5;
+            /* align-items: left; */
+
+            overflow: hidden;
+            /* hide scrollbars completely */
+
+            /* For WebKit browsers (Chrome, Safari) */
+            scrollbar-width: none;
+            /* Firefox */
+        }
+
+        #alphabet-nav::-webkit-scrollbar {
+            display: none;
+            /* Chrome, Safari */
+        }
+
+        #alphabet-nav span {
+            cursor: pointer;
+            font-size: 0.2;
+            color: rgba(255, 255, 255, 0.566);
+            padding: 4px;
+            transition: color 0.2s;
+            text-align: left;
+        }
+
+        #alphabet-nav span:hover {
+            color: black;
+            background-color: white;
+            border-radius: 4px;
+        }
+
+        /* Cover loading spinner */
+        .cover-spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            to {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .mac-window {
+                width: 95%;
+                height: 90vh;
+                flex-direction: column;
+            }
+
+            .window-content {
+                flex-direction: column;
+            }
+
+            .window-left,
+            .window-right {
+                width: 100%;
+            }
+
+            .window-left {
+                padding: 15px;
+                border-right: none;
+                border-bottom: 1px solid #e0e0e0;
+            }
+
+            .cover-large {
+                width: 180px;
+                height: 180px;
+            }
+
+            .control-buttons {
+                left: 50%;
+                transform: translateX(-50%);
+                bottom: 10px;
+            }
+
+            .game-links {
+                flex-direction: row;
+                justify-content: center;
+                gap: 10px;
+            }
+
+            .game-link {
+                height: 35px;
+                padding: 6px 10px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+
+            .cover-large {
+                width: 150px;
+                height: 150px;
+            }
+
+            .game-links {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .game-link {
+                width: 90%;
+            }
+        }
+
+        /* Sentry for infinite scroll */
+        #sentinel {
+            height: 10px;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <header style="display: flex; height: 35px; align-items: center; gap: 8px;">
+        <img src="https://cdn.sdappnet.cloud/rtx/images/Playstation-Logo-Download.png" style="width: 20px;" />
+        <input type="search" id="search" placeholder="Search PS1 games..." />
+    </header>
+
+    <!-- Alphabet navigation -->
+    <div id="alphabet-nav"></div>
+
+    <main class="grid" id="grid">
+        <div class="loading" id="loading">Loading...</div>
+    </main>
+
+    <!-- macOS Window Popup for Single Game -->
+    <div class="mac-window-overlay" id="macWindowOverlay">
+        <div class="mac-window">
+            <div class="window-header">
+                <div class="window-controls">
+                    <div class="window-control close" id="windowClose"></div>
+                    <div class="window-control minimize" id="windowMinimize"></div>
+                    <div class="window-control maximize" id="windowMaximize"></div>
+                </div>
+                <div class="window-title" id="windowTitle">Game Script</div>
+                <div style="width: 60px;"></div>
+            </div>
+            <div class="window-content">
+                <div class="window-left">
+                    <div class="cover-large" id="largeCover">
+                        <img id="largeCoverImage" alt="Game Cover" />
+                    </div>
+                    <div class="game-info">
+                        <div class="game-title" id="popupGameTitle"></div>
+                        <div class="game-details" id="popupGameDetails"></div>
+                        <div class="game-links">
+                            <a class="game-link youtube" id="popupGameYoutubeLink" target="_blank"
+                                rel="noopener noreferrer">
+                                <img src="https://cdn.sdappnet.cloud/rtx/images/youtubebtn.png" alt="YouTube" />
+                            </a>
+                            <a class="game-link mobygames" id="popupGameMobyGamesLink" target="_blank"
+                                rel="noopener noreferrer">
+                                <img src="https://www.mobygames.com/static/img/logo.37887f87.png" alt="MobyGames" />
+                            </a>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="window-right">
+                    <div class="script-container">
+                        <div class="script-header">
+                            <div>
+                                <div style="font-size: 14px; font-weight: bold; color: black">Generated Script</div>
+                                <a href="#" onclick="runAppleScript()" style="display: inline-block; font-size: 12px; color: #007AFF; text-decoration: none;
+                                padding: 4px 8px; background: white; border: 1px solid #ddd; border-radius: 4px;">
+                                    🖥️ Open Terminal
+                                </a>
+
+                                <script>
+                                    function runAppleScript() {
+                                        // This will only work if user has allowed Apple Events
+                                        const script = 'tell application "Terminal" to activate';
+                                        window.location.href = 'applescript:' + encodeURIComponent(script);
+                                    }
+                                </script>
+                            </div>
+                            <div style="display: flex; height: 35px; align-items: center; gap: 8px;">
+                                <button class="copy-button" id="copyScriptButton">Copy to Clipboard</button>
+                                <button class="copy-button" id="downloadButton"><svg width="12px" height="12px"
+                                        viewBox="0 0 12 12" version="1.1" xmlns="http://www.w3.org/2000/svg"
+                                        xmlns:xlink="http://www.w3.org/1999/xlink">
+                                        <title>download</title>
+                                        <defs>
+                                            <linearGradient x1="50%" y1="0%" x2="50%" y2="100%" id="linearGradient-1">
+                                                <stop stop-color="#FFFFFF" offset="0%"></stop>
+                                                <stop stop-color="#FFFFFF" offset="100%"></stop>
+                                            </linearGradient>
+                                        </defs>
+                                        <g id="my-developer-workstation" stroke="none" stroke-width="1" fill="none"
+                                            fill-rule="evenodd">
+                                            <g id="download" fill="url(#linearGradient-1)" fill-rule="nonzero">
+                                                <path
+                                                    d="M7.30946748,3.23398057 L12,5.75676816 L12,8.64993238 C12,8.67883138 11.9843059,8.70545074 11.9590193,8.71944136 L6.04770066,11.9900702 C6.02380356,12.003292 5.99479006,12.003311 5.97087566,11.9901206 L0.0410719903,8.7194215 C0.0157342808,8.705446 0,8.67879844 0,8.64986206 L0,5.80436395 C0,5.77506188 0.0161307401,5.74813917 0.041968244,5.73431764 L4.71601445,3.23398057 L4.71601445,4.75763351 L4.38808223,4.31692957 L3.08179196,5.65087589 L5.95488648,8.45244244 C5.98532063,8.48211886 6.03372318,8.4825784 6.06471528,8.45348512 L8.69980308,5.97984204 L7.85780634,4.31692957 L7.30946748,4.75763351 L7.30946748,3.23398057 Z M6.59352528,0 L6.59352528,5.97984204 L7.6645026,5.06811767 L8.1298524,5.97984204 L6.0093021,7.92533181 L3.77585813,5.68382511 L4.34094385,5.06811767 L5.47797583,5.97984204 L5.47797583,0 L6.59352528,0 Z">
+                                                </path>
+                                            </g>
+                                        </g>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <pre class="script-text" id="scriptText"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- macOS Window Popup for All Games -->
+    <div class="mac-window-overlay" id="macAllGamesOverlay">
+        <div class="mac-window">
+            <div class="window-header">
+                <div class="window-controls">
+                    <div class="window-control close" id="allGamesWindowClose"></div>
+                    <div class="window-control minimize" id="allGamesWindowMinimize"></div>
+                    <div class="window-control maximize" id="allGamesWindowMaximize"></div>
+                </div>
+                <div class="window-title">PS1 to macOS Porting Script</div>
+                <div style="width: 60px;"></div>
+            </div>
+            <div class="window-content">
+                <div class="window-left">
+                    <div class="cover-large" id="largeCoverAll">
+                        <img id="largeCoverImageAll" alt="macOS Logo"
+                            src="https://cdn.sdappnet.cloud/rtx/images/mac-os-x.png" />
+                    </div>
+                    <div class="game-info">
+                        <div class="game-title">MacOS X Porting Tool</div>
+                        <div class="game-details" id="allGamesCount">Batch porting script</div>
+                        <div class="game-links">
+                            <button class="game-link" id="copyAllScriptButton" style="cursor: pointer; display: none;">
+                                📋 Copy Script
+                            </button>
+                            <div class="game-links">
+                                <a class="game-link" href="https://cdn.sdappnet.cloud/rtx/macosx_ps1_windows.html"
+                                    target="_blank" rel="noopener noreferrer"><img
+                                        src="https://cdn.sdappnet.cloud/rtx/images/Windows-Logo.png"
+                                        style="width: 50px;" /></a>
+                                <a class="game-link" href="https://cdn.sdappnet.cloud/rtx/macosx_ps1_linux.html"
+                                    target="_blank" rel="noopener noreferrer"><img
+                                        src="https://cdn.sdappnet.cloud/rtx/images/linux-logo.png"
+                                        style="width: 50px;" /></a>
+                                <a class="game-link" href="https://cdn.sdappnet.cloud/rtx/PlayStation.html"
+                                    target="_blank" rel="noopener noreferrer"><img
+                                        src="https://cdn.sdappnet.cloud/rtx/images/PlayStation-Logo1994.png"
+                                        style="width: 50px;" /></a>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="window-right">
+                    <div class="script-container">
+                        <div class="script-header">
+                            <div class="script-title">MacOS X Porting Tool</div>
+                            <button class="copy-button" id="copyAllScriptButtonMain">Copy to Clipboard</button>
+                        </div>
+                        <pre class="script-text" id="allGamesScriptText"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Control Buttons -->
+    <div class="control-buttons">
+        <div class="control-button" id="macosxButton">
+            <img src="https://cdn.sdappnet.cloud/rtx/images/mac-os-x.png" alt="macOS" />
+        </div>
+        <div class="control-button" id="toggle3DButton">
+            <img src="https://cdn.sdappnet.cloud/rtx/images/3d-logo-3d.png" alt="Toggle 3D Covers" />
+        </div>
+    </div>
+
+    <img src="https://cdn.sdappnet.cloud/rtx/images/ps1.png" style="width: 100%" />
+
+    <div id="alphabet-nav" style="display: flex; flex-direction: column; align-items: center;"></div>
+
+    <script>
+        // Check if we're in an iframe
+        const isInIframe = window.self !== window.top;
+        // Temporary placeholder for generateScript if it doesn't exist
+        if (typeof generateScript === 'undefined') {
+            function generateScript(game) {
+                return `# PS1 Porting Script for: ${game.name || game.title}\n# This would generate the actual porting script\n# Game code: ${game.codes ? game.codes[0] : 'N/A'}`;
+            }
+        }
+        const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+        const nav = document.getElementById("alphabet-nav");
+
+        function buildAlphabetNav() {
+            nav.innerHTML = ""; // clear previous letters
+
+            alphabet.forEach(letter => {
+                const btn = document.createElement("span");
+                btn.textContent = letter;
+                btn.style.flex = "1 1 auto"; // each letter takes equal vertical space
+                btn.style.display = "flex";
+                btn.style.justifyContent = "center";
+                btn.style.alignItems = "center";
+                btn.style.width = "100%";
+                btn.style.cursor = "pointer";
+                btn.style.userSelect = "none";
+                btn.style.lineHeight = "1"; // no extra spacing
+                btn.onclick = () => {
+                    const target = document.getElementById("section-" + letter);
+                    if (target) {
+                        target.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }
+                };
+                nav.appendChild(btn);
+            });
+        }
+
+        buildAlphabetNav();
+        window.addEventListener("resize", buildAlphabetNav);
+    </script>
+
+    <script>
+        const DATA_URL = "https://cdn.sdappnet.cloud/rtx/ps1_list.json";
+        let games = [];
+        let filteredGames = [];
+        let use3DCovers = false;
+        let currentSelectedGame = null;
+        let isLoading = false;
+        let hasMoreData = true;
+        let totalGamesLoaded = 0;
+
+        const grid = document.getElementById("grid");
+        const search = document.getElementById("search");
+        const loading = document.getElementById("loading");
+        const macWindowOverlay = document.getElementById("macWindowOverlay");
+        const macAllGamesOverlay = document.getElementById("macAllGamesOverlay");
+        const windowClose = document.getElementById("windowClose");
+        const allGamesWindowClose = document.getElementById("allGamesWindowClose");
+        const scriptText = document.getElementById("scriptText");
+        const allGamesScriptText = document.getElementById("allGamesScriptText");
+        const copyScriptButton = document.getElementById("copyScriptButton");
+        const downloadButton = document.getElementById("downloadButton");
+        const copyAllScriptButton = document.getElementById("copyAllScriptButton");
+        const macosxButton = document.getElementById("macosxButton");
+        const toggle3DButton = document.getElementById("toggle3DButton");
+        const allGamesCount = document.getElementById("allGamesCount");
+
+        // Virtual scrolling variables
+        let itemsPerPage = 200;
+        let currentPage = 0;
+        let isSearching = false;
+        let sentinelObserver = null;
+
+        // Console logging function
+        function log(message, data = null) {
+            console.log(`[PS1 Browser] ${message}`, data || '');
+        }
+
+        // ASCII Art
+        const PS1_ASCII = `
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣷⣶⣤⣤⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⠿⣿⣷⣶⣄⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⡇⠀⢸⣿⣿⣿⣷⡄⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⡇⠀⢸⣿⣿⣿⣿⣧⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⡇⠀⢸⣿⣿⣿⣿⡿⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⡇⠀⢸⣿⣿⣿⣿⠇⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⣀⣤⠀⣿⣿⣿⣿⡇⠀⠈⠉⠉⠉⠁⠀⠀⠀⠀⠀⠀⠀
+⠀⢀⣠⣤⣶⣾⣿⣿⡿⠀⣿⣿⣿⣿⡇⠀⢰⣶⣿⣿⣿⠿⠿⢿⣶⣦⣤⡀
+⢰⣿⣿⣿⡿⠛⠉⢀⣀⠀⣿⣿⣿⣿⡇⠀⠘⠋⠉⠀⣀⣠⣴⣾⣿⣿⣿⠇
+⠈⠻⠿⣿⣿⣿⣿⣿⠿⠀⣿⣿⣿⣿⡇⠀⢠⣶⣾⣿⣿⡿⠿⠟⠋⠉⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⠛⠿⢿⡇⠀⠸⠟⠛⠋⠁⠀⠀⠀⠀⠀⠀⠀
+
+================================
+    PS1 to macOS Porting Tool
+================================
+• Converts PS1 games to macOS apps
+• Downloads games & cover art
+• Creates MacOSX Electron app with game
+• Creates proper .app bundles
+• Creates icon in Dock
+================================
+`;
+
+        // Missing sanitize function - ADDED THIS
+        function sanitize(str) {
+            return (str || "")
+                .replace(/[^a-z0-9]/gi, "_")
+                .replace(/_{2,}/g, "_")
+                .replace(/^_|_$/g, "");
+        }
+
+        // Remove duplicates by title
+        function removeDuplicates(gameList) {
+            const seenTitles = new Set();
+            const uniqueGames = [];
+
+            for (const game of gameList) {
+                // Normalize title for comparison - FIXED to handle more variations
+                const cleanTitle = (game.title || '').replace(/\.zip$/i, '').trim();
+                const normalizedTitle = cleanTitle.toLowerCase()
+                    .replace(/\(.*?\)/g, '')
+                    .replace(/\[.*?\]/g, '')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+
+                if (!seenTitles.has(normalizedTitle)) {
+                    seenTitles.add(normalizedTitle);
+                    uniqueGames.push(game);
+                } else {
+                    log(`Removed duplicate: ${cleanTitle}`);
+                }
+            }
+
+            log(`Removed ${gameList.length - uniqueGames.length} duplicates, kept ${uniqueGames.length} unique games`);
+            return uniqueGames;
+        }
+
+        // Cover URL generation with better error handling
+        function getCoverURL(game) {
+            if (!game.codes || !game.codes[0]) {
+                return "https://cdn.sdappnet.cloud/rtx/images/ps1-sony-computer-entertainment.png";
+            }
+
+            const code = game.codes[0];
+            const baseURL = "https://raw.githubusercontent.com/xlenore/psx-covers/main/covers/";
+
+            if (use3DCovers) {
+                return `${baseURL}3d/${code}.png`;
+            } else {
+                return `${baseURL}default/${code}.jpg`;
+            }
+        }
+
+        // Get valid cover URL with fallback
+        async function getValidCoverURL(game) {
+            const primaryURL = getCoverURL(game);
+            const defaultImage = "https://cdn.sdappnet.cloud/rtx/images/ps1-sony-computer-entertainment.png";
+
+            // Skip test for placeholder/default images
+            if (primaryURL.includes('placeholder') || primaryURL.includes('ps1-sony-computer-entertainment')) {
+                return primaryURL;
+            }
+
+            try {
+                const exists = await testImage(primaryURL);
+                return exists ? primaryURL : defaultImage;
+            } catch (error) {
+                return defaultImage;
+            }
+        }
+
+        // Also update the createImageElement() function to handle errors properly:
+        function createImageElement(src, alt) {
+            const img = new Image();
+
+            // Disable lazy loading if in iframe
+            if (isInIframe) {
+                img.loading = "eager"; // Force immediate loading in iframes
+            } else {
+                img.loading = "lazy";
+            }
+
+            img.alt = alt || '';
+
+            // Use a placeholder first
+            const placeholder = "https://cdn.sdappnet.cloud/rtx/images/ps1-sony-computer-entertainment.png";
+            img.src = placeholder;
+
+            // If we have a real image source and it's not the placeholder
+            if (src && src !== placeholder && !src.includes('placeholder')) {
+                // Force immediate loading for iframes
+                if (isInIframe) {
+                    img.src = src;
+                } else {
+                    // Create a new image to test if it loads
+                    const testImg = new Image();
+                    testImg.onload = function () {
+                        // If the test image loads successfully, update the actual image
+                        img.src = src;
+                        console.log(`Loaded cover: ${src}`);
+                    };
+                    testImg.onerror = function () {
+                        // Keep the placeholder if the real image fails
+                        console.log(`Failed to load cover, keeping placeholder: ${src}`);
+                    };
+                    testImg.src = src;
+                }
+            }
+
+            return img;
+        }
+
+        // Normalize strings for smart search
+        function normalize(str) {
+            return (str || "")
+                .toLowerCase()
+                .replace(/\.zip$/, "")
+                .replace(/\(.*?\)/g, "")
+                .replace(/[^a-z0-9\s]/g, " ")
+                .replace(/\s+/g, " ")
+                .trim();
+        }
+
+        // Show/hide loading
+        function showLoading() {
+            loading.style.display = 'block';
+        }
+
+        function hideLoading() {
+            loading.style.display = 'none';
+        }
+
+        // FIXED: Proper data loading with duplicate removal
+        // Update the loadData() function to use renderInitialBatch instead:
+        // FIXED: Proper data loading with duplicate removal
+        async function loadData() {
+            if (isLoading) return;
+
+            showLoading();
+            isLoading = true;
+            log("Starting data load from:", DATA_URL);
+
+            try {
+                const response = await fetch(DATA_URL);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                const json = await response.json();
+                log(`Successfully loaded ${json.length} games from JSON`);
+
+                // Remove duplicates BEFORE processing
+                const uniqueGames = removeDuplicates(json);
+                log(`After duplicate removal: ${uniqueGames.length} games`);
+
+                // Process unique games
+                games = uniqueGames.map((g, index) => ({
+                    ...g,
+                    _normTitle: normalize(g.title),
+                    _normName: normalize(g.name),
+                    _coverURL: getCoverURL(g),
+                    _index: index
+                }));
+
+                filteredGames = games;
+                totalGamesLoaded = 0;
+                grid.innerHTML = '';
+
+                log(`Processing ${games.length} games for display`);
+
+                // IMPORTANT: Set loading to false BEFORE rendering
+                isLoading = false;
+
+                // Render initial batch immediately
+                renderInitialBatch();
+
+            } catch (err) {
+                log("Failed to load JSON:", err);
+                grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #ff6b6b;">Failed to load data. Please refresh the page.</div>';
+                isLoading = false;
+                hideLoading();
+            }
+        }
+
+        // Simple batch rendering - NO infinite scroll observer needed
+        // Simple batch rendering - NO infinite scroll observer needed
+        // Simple batch rendering - NO infinite scroll observer needed
+        function renderInitialBatch() {
+            console.log('renderInitialBatch called');
+            console.log('filteredGames length:', filteredGames.length);
+            console.log('isLoading:', isLoading);
+
+            // Don't render if no games or still loading
+            if (filteredGames.length === 0) {
+                console.log('Skipping render - filteredGames empty');
+                hideLoading();
+                return;
+            }
+
+            // Clear any existing loading message
+            hideLoading();
+
+            // Always load the first batch immediately
+            const initialBatchSize = 100; // Load 100 games initially
+            const gamesToRender = filteredGames.slice(0, Math.min(initialBatchSize, filteredGames.length));
+
+            console.log(`Rendering initial batch: ${gamesToRender.length} games`);
+
+            if (gamesToRender.length === 0) {
+                console.log("No games to display");
+                // Show empty state
+                grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #ccc;">No games found</div>';
+                return;
+            }
+
+            const fragment = document.createDocumentFragment();
+
+            gamesToRender.forEach((game, index) => {
+                console.log(`Creating card ${index + 1}: ${game.title || game.name}`);
+                const card = createCard(game, isSearching);
+                fragment.appendChild(card);
+            });
+
+            grid.appendChild(fragment);
+            totalGamesLoaded = gamesToRender.length;
+
+            console.log(`Initial batch loaded: ${totalGamesLoaded} games, grid now has ${grid.children.length} children`);
+
+            // If we have more games, set up a simple scroll listener
+            if (filteredGames.length > initialBatchSize) {
+                setupSimpleScrollLoad();
+            }
+
+            // Force covers to load by triggering image loading
+            setTimeout(() => {
+                console.log('Forcing image load...');
+                const images = document.querySelectorAll('.card img');
+                console.log(`Found ${images.length} images to load`);
+
+                images.forEach((img, index) => {
+                    if (img.src && !img.complete) {
+                        console.log(`Image ${index + 1} not complete, reloading:`, img.src);
+                        const src = img.src;
+                        img.src = '';
+                        setTimeout(() => {
+                            img.src = src;
+                            console.log(`Reloaded image ${index + 1}`);
+                        }, 10);
+                    }
+                });
+            }, 200);
+        }
+
+        // Simple scroll-based loading without intersection observer
+        function setupSimpleScrollLoad() {
+            let isLoadingMore = false;
+
+            const loadMoreOnScroll = () => {
+                if (isLoadingMore || isLoading || totalGamesLoaded >= filteredGames.length) return;
+
+                // Check if user has scrolled near bottom (80% of page)
+                const scrollPosition = window.innerHeight + window.scrollY;
+                const pageHeight = document.documentElement.scrollHeight;
+                const threshold = pageHeight * 0.8;
+
+                if (scrollPosition >= threshold) {
+                    isLoadingMore = true;
+                    loadMoreGames();
+                }
+            };
+
+            const loadMoreGames = () => {
+                if (isLoading || totalGamesLoaded >= filteredGames.length) {
+                    isLoadingMore = false;
+                    return;
+                }
+
+                const batchSize = 50;
+                const start = totalGamesLoaded;
+                const end = Math.min(start + batchSize, filteredGames.length);
+                const gamesToRender = filteredGames.slice(start, end);
+
+                log(`Loading more games: ${start}-${end} of ${filteredGames.length}`);
+
+                const fragment = document.createDocumentFragment();
+
+                gamesToRender.forEach(game => {
+                    const card = createCard(game, isSearching);
+                    fragment.appendChild(card);
+                });
+
+                grid.appendChild(fragment);
+                totalGamesLoaded += gamesToRender.length;
+
+                log(`Total games loaded: ${totalGamesLoaded}/${filteredGames.length}`);
+
+                isLoadingMore = false;
+            };
+
+            // Set up scroll listener
+            window.addEventListener('scroll', loadMoreOnScroll);
+
+            // Also trigger on resize for embedded contexts
+            window.addEventListener('resize', loadMoreOnScroll);
+
+            // Trigger initial check
+            setTimeout(loadMoreOnScroll, 200);
+
+            log("Simple scroll loading setup complete");
+        }
+
+        // Create a single card - FIXED to prevent flickering
+        function createCard(game, showTitles) {
+            const card = document.createElement("div");
+            card.className = "card";
+            card.dataset.id = game.title || Math.random().toString(36);
+            card.title = game.title;
+            const cover = document.createElement("div");
+            cover.className = "cover";
+
+            // Create spinner for loading
+            const spinner = document.createElement("div");
+            spinner.className = "cover-spinner";
+            spinner.style.display = 'block';
+
+            const img = createImageElement(game._coverURL, game.title || game.name);
+
+            // Show spinner while image loads
+            img.onload = () => {
+                spinner.style.display = 'none';
+            };
+            img.onerror = () => {
+                spinner.style.display = 'none';
+            };
+
+            // Click handler for showing macOS window
+            cover.addEventListener('click', (e) => {
+                e.stopPropagation();
+                showMacWindow(game);
+            });
+
+            cover.appendChild(spinner);
+            cover.appendChild(img);
+            card.appendChild(cover);
+
+            if (showTitles) {
+                const title = document.createElement("div");
+                title.className = "title";
+                title.textContent = (game.title || "").replace(/\.zip$/i, "");
+                card.appendChild(title);
+            }
+
+            return card;
+        }
+
+
+
+        // Generate search URLs
+        function getYoutubeSearchURL(gameName) {
+            const query = encodeURIComponent(`${gameName.replace(/\.zip$/i, '').replace(/\([^)]*\)|\[[^\]]*\]/g, '').trim()} PS1 gameplay`);
+            return `https://meyt.netlify.app/search/${query}`.replace(/%20/g, '+');
+        }
+
+        function getMobyGamesSearchURL(gameName) {
+            const query = encodeURIComponent(`${gameName.replace(/\.zip$/i, '').replace(/\([^)]*\)|\[[^\]]*\]/g, '').trim()}`);
+            return `https://meyt.netlify.app/search/${query}`.replace(/%20/g, '+');
+        }
+
+        // Update showMacWindow() to not use async validation:
+        async function showMacWindow(game) {
+            currentSelectedGame = game;
+            const gameName = game.name || game.title.replace(/\.zip$/i, '');
+
+            // Update window content
+            document.getElementById('windowTitle').textContent = `${gameName} - Script`;
+            document.getElementById('popupGameTitle').textContent = gameName;
+
+            const details = [];
+            if (game.size) details.push(`Size: ${game.size}`);
+            if (game.codes && game.codes[0]) details.push(`Code: ${game.codes[0]}`);
+            document.getElementById('popupGameDetails').textContent = details.join(' • ');
+
+            // Update YouTube and MobyGames links
+            document.getElementById('popupGameYoutubeLink').href = getYoutubeSearchURL(gameName);
+            document.getElementById('popupGameMobyGamesLink').href = getMobyGamesSearchURL(gameName);
+
+            // Load cover image - SIMPLIFIED
+            const coverUrl = getCoverURL(game);
+            const largeCoverImage = document.getElementById('largeCoverImage');
+            largeCoverImage.src = coverUrl;
+            largeCoverImage.onerror = () => {
+                largeCoverImage.src = "https://cdn.sdappnet.cloud/rtx/images/ps1-sony-computer-entertainment.png";
+            };
+
+            // Generate and display script
+            const script = generateScript(game);
+            scriptText.textContent = script;
+            // Show window
+            macWindowOverlay.style.display = 'flex';
+
+            // Reset copy button
+            copyScriptButton.textContent = 'Copy to Clipboard';
+            copyScriptButton.classList.remove('copied');
+
+            log(`Showing game: ${gameName}`);
+        }
+
+        // Show all games script window
+        function showAllGamesScript() {
+            log("Generating batch script");
+
+            // Update count
+            allGamesCount.textContent = `Porting ${filteredGames.length} PS1 games`;
+
+            // Set ASCII art as the script content
+            allGamesScriptText.textContent = PS1_ASCII;
+
+            // Show window
+            macAllGamesOverlay.style.display = 'flex';
+
+            // Reset copy buttons
+            copyAllScriptButton.textContent = '📋 Copy Script';
+            copyAllScriptButtonMain.textContent = 'Copy to Clipboard';
+            copyAllScriptButtonMain.classList.remove('copied');
+        }
+
+        // Update toggle3DCovers() to not use async validation:
+        async function toggle3DCovers() {
+            use3DCovers = !use3DCovers;
+
+            // Update button state
+            if (use3DCovers) {
+                toggle3DButton.classList.add('active');
+                toggle3DButton.title = "3D Covers ON - Click for Default Covers";
+            } else {
+                toggle3DButton.classList.remove('active');
+                toggle3DButton.title = "3D Covers OFF - Click for 3D Covers";
+            }
+
+            // Update all games with new cover URLs
+            games.forEach(game => {
+                game._coverURL = getCoverURL(game);
+            });
+
+            filteredGames = games;
+
+            // Refresh grid
+            totalGamesLoaded = 0;
+            grid.innerHTML = '';
+            showLoading();
+
+            log(`Toggled 3D covers: ${use3DCovers ? 'ON' : 'OFF'}`);
+
+            // Re-render with simple batch loading
+            renderInitialBatch();
+
+            // Update current window if open
+            if (currentSelectedGame) {
+                const coverUrl = getCoverURL(currentSelectedGame);
+                document.getElementById('largeCoverImage').src = coverUrl;
+                const script = generateScript(currentSelectedGame);
+                scriptText.textContent = script;
+            }
+        }
+        // Copy script to clipboard - FIXED
+        function copyScriptToClipboard(button, text) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.classList.add('copied');
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                button.textContent = 'Failed!';
+                setTimeout(() => {
+                    button.textContent = originalText.includes('Copy') ? originalText : 'Copy to Clipboard';
+                }, 2000);
+            });
+        }
+
+        // Download script as .command - Fixed for macOS permissions
+        function downloadScriptToAsCommand(button, text) {
+            try {
+                // Get the game name from the current selected game
+                let gameName = '';
+                if (currentSelectedGame) {
+                    gameName = currentSelectedGame.name || currentSelectedGame.title || 'ps1_game';
+                } else {
+                    gameName = 'ps1_game';
+                }
+
+                // Clean up the name for filename
+                gameName = gameName
+                    .replace(/\.zip$/i, '') // Remove .zip extension
+                    .replace(/\.sh$/, '') // Remove .sh if present
+                    .replace(/[^a-zA-Z0-9\-_]/g, '_') // Replace special chars with underscore
+                    .replace(/_+/g, '_') // Replace multiple underscores with single
+                    .replace(/^_|_$/g, ''); // Remove leading/trailing underscores
+
+                if (!gameName) gameName = 'ps1_game';
+
+                // Create a complete script with proper shebang and auto-fix permissions
+                const scriptContent = `#!/bin/bash
+
+# PS1 Porting Script for: ${gameName}
+# This script will create a macOS app for the PS1 game
+
+# Fix permissions on first run
+if [ ! -x "\$0" ]; then
+    echo "Fixing permissions for this script..."
+    chmod +x "\$0"
+    echo "Please run this script again."
+    exit 0
+fi
+
+# Remove quarantine flag
+echo "Removing macOS quarantine flag..."
+xattr -d com.apple.quarantine "\$0" 2>/dev/null || echo "Quarantine not present or already removed"
+
+# Main script content
+${text}
+
+echo ""
+echo "Script execution complete!"
+echo "----------------------------------------"
+`;
+
+                const filename = `${gameName}.sh`;
+
+                // Create blob and download
+                const blob = new Blob([scriptContent], { type: 'application/octet-stream' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                // Show detailed instructions
+                setTimeout(() => {
+                    const instructions = `
+📥 File downloaded: 
+${filename}
+💻To run this script:
+1. Open Terminal and paste:
+
+cd ~/Downloads
+chmod +x '${filename}'
+./'${filename}'
+
+
+OR:
+1. Right-click the file in Finder
+2. Select "Open With" → "Terminal"
+3. If you see a security warning, click "Open"
+
+Troubleshooting:
+• If you see "Permission denied": Run 'chmod +x' as shown above
+• If you see "unidentified developer": Right-click → Open
+• If still having issues: Open Terminal and drag-drop the file into it
+`;
+
+                    if (confirm(instructions + "\n\nClick OK to continue or Cancel to dismiss")) {
+                        // Copy the commands to clipboard for convenience
+                        const commands = `cd ~/Downloads && chmod +x '${filename}' && ./'${filename}'`;
+                        navigator.clipboard.writeText(commands).then(() => {
+                            console.log('Commands copied to clipboard');
+                        });
+                    }
+                }, 100);
+
+            } catch (error) {
+                console.error('Download error:', error);
+                alert(`Failed to download: ${error.message}`);
+            }
+        }
+
+        // Debug function to check state
+        function debugState() {
+            console.log('=== DEBUG STATE ===');
+            console.log('games array length:', games.length);
+            console.log('filteredGames array length:', filteredGames.length);
+            console.log('totalGamesLoaded:', totalGamesLoaded);
+            console.log('isLoading:', isLoading);
+            console.log('grid children:', grid.children.length);
+            console.log('search value:', search.value);
+            console.log('isSearching:', isSearching);
+            console.log('=== END DEBUG ===');
+        }
+
+        // Initialize
+        // Update the init() function to include debug
+        // Initialize
+        function init() {
+            console.log('Starting initialization...');
+
+            // Make sure grid is ready
+            grid.innerHTML = '<div class="loading" id="loading">Loading...</div>';
+            showLoading();
+
+            loadData();
+
+            // Set initial button titles
+            toggle3DButton.title = "Toggle 3D Covers (Currently: Default)";
+            macosxButton.title = "Show Porting Tool Info";
+
+            // Debug after a short delay
+            setTimeout(debugState, 1500);
+
+            log("Application initialized");
+        }
+
+        // Event Listeners - FIXED copy functionality
+        windowClose.addEventListener('click', () => {
+            macWindowOverlay.style.display = 'none';
+        });
+
+        allGamesWindowClose.addEventListener('click', () => {
+            macAllGamesOverlay.style.display = 'none';
+        });
+
+        // Close all overlays when clicking on them
+        [macWindowOverlay, macAllGamesOverlay].forEach(overlay => {
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    overlay.style.display = 'none';
+                }
+            });
+        });
+
+        // FIXED: Copy button for single game script
+        copyScriptButton.addEventListener('click', () => {
+            const text = scriptText.textContent;
+            if (text) {
+                copyScriptToClipboard(copyScriptButton, text);
+            }
+        });
+
+        // FIXED: Copy button for single game script
+        downloadButton.addEventListener('click', () => {
+            const text = scriptText.textContent;
+            if (text) {
+                downloadScriptToAsCommand(downloadButton, text);
+            }
+        });
+
+        // FIXED: Copy button for all games script (main button)
+        copyAllScriptButtonMain.addEventListener('click', () => {
+            const text = allGamesScriptText.textContent;
+            if (text) {
+                copyScriptToClipboard(copyAllScriptButtonMain, text);
+            }
+        });
+
+        // FIXED: Copy button for all games script (secondary button)
+        copyAllScriptButton.addEventListener('click', () => {
+            const text = allGamesScriptText.textContent;
+            if (text) {
+                copyScriptToClipboard(copyAllScriptButton, text);
+                copyAllScriptButtonMain.textContent = 'Copied!';
+                copyAllScriptButtonMain.classList.add('copied');
+                setTimeout(() => {
+                    copyAllScriptButtonMain.textContent = 'Copy to Clipboard';
+                    copyAllScriptButtonMain.classList.remove('copied');
+                }, 2000);
+            }
+        });
+
+        toggle3DButton.addEventListener('click', toggle3DCovers);
+
+        macosxButton.addEventListener('click', () => {
+            log("macOS button clicked - showing porting tool info");
+            showAllGamesScript();
+        });
+
+        // Debounced search with duplicate handling
+        // Debounced search with duplicate handling
+        let debounceTimeout;
+        search.addEventListener("input", () => {
+            clearTimeout(debounceTimeout);
+            debounceTimeout = setTimeout(() => {
+                const q = normalize(search.value);
+                isSearching = !!q;
+
+                // Reset loading state
+                totalGamesLoaded = 0;
+                grid.innerHTML = '';
+                showLoading();
+
+                // Scroll to top when searching
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                if (!q) {
+                    filteredGames = games;
+                    log("Search cleared, showing all games");
+                } else {
+                    filteredGames = games.filter(g => {
+                        const searchTerms = q.split(" ");
+                        const combined = g._normTitle + " " + g._normName;
+
+                        return searchTerms.every(term =>
+                            combined.includes(term) ||
+                            g._normTitle.includes(term) ||
+                            g._normName.includes(term)
+                        );
+                    });
+                    log(`Search for "${q}" found ${filteredGames.length} games`);
+                }
+
+                // Set isLoading to false and render
+                isLoading = false;
+                renderInitialBatch();
+            }, 200);
+        });
+
+        // Close window with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (macWindowOverlay.style.display === 'flex') {
+                    macWindowOverlay.style.display = 'none';
+                }
+                if (macAllGamesOverlay.style.display === 'flex') {
+                    macAllGamesOverlay.style.display = 'none';
+                }
+            }
+        });
+
+        // Load on startup
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+
+</html>
